@@ -2,8 +2,40 @@ export const SITE_NAME = "Discovered Local";
 export const SITE_DESCRIPTION =
   "Discovered Local connects Portsmouth creators with great local restaurants, cafés, businesses and experiences. Apply to become a local creator.";
 
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://discoveredlocal.com";
+const DEFAULT_SITE_URL = "https://discoveredlocal.com";
+
+/**
+ * Resolves the canonical site URL.
+ *
+ * Tolerates the two ways this is easy to get wrong in a dashboard: an empty
+ * value (which `??` would happily pass through) and a host with no scheme.
+ * Falls back to Vercel's own system variables, then to the production domain,
+ * so a bad value can never break the build.
+ */
+function resolveSiteUrl(): string {
+  const candidates = [
+    process.env.NEXT_PUBLIC_SITE_URL,
+    process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
+    process.env.NEXT_PUBLIC_VERCEL_URL,
+    DEFAULT_SITE_URL,
+  ];
+
+  for (const candidate of candidates) {
+    const trimmed = candidate?.trim().replace(/\/+$/, "");
+    if (!trimmed) continue;
+
+    const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    try {
+      return new URL(withScheme).origin;
+    } catch {
+      // Try the next candidate.
+    }
+  }
+
+  return DEFAULT_SITE_URL;
+}
+
+export const SITE_URL = resolveSiteUrl();
 
 export const SOCIAL_LINKS = {
   instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "",

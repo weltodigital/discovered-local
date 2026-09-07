@@ -59,7 +59,7 @@ cp .env.example .env.local
 | `NEXT_PUBLIC_SUPABASE_URL` | browser + server | Project URL. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | browser + server | Public key, safe to expose. RLS does the work. |
 | `SUPABASE_SERVICE_ROLE_KEY` | **server only** | Used by the application endpoint. Never prefix with `NEXT_PUBLIC_` and never import it into a client component. |
-| `NEXT_PUBLIC_SITE_URL` | metadata | Canonical URL used by Open Graph tags, `sitemap.xml` and `robots.txt`. |
+| `NEXT_PUBLIC_SITE_URL` | metadata | Canonical URL used by Open Graph tags, `sitemap.xml` and `robots.txt`. Optional: blank falls back to the Vercel deployment URL, then to `https://discoveredlocal.com`, and a missing `https://` is added. |
 | `NEXT_PUBLIC_INSTAGRAM_URL` | footer, success page | Optional. Leave blank and the links hide themselves. |
 | `NEXT_PUBLIC_TIKTOK_URL` | footer, success page | Optional. |
 
