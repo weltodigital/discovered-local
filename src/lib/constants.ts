@@ -1,6 +1,18 @@
 export const SITE_NAME = "Discovered Local";
+/**
+ * Pricing. Founding businesses in Portsmouth pay the launch price; the standard
+ * price is what the service costs once we're past the founding group, and is
+ * shown alongside it. Kept here because it appears on both public pages, in
+ * metadata, in the CTAs and in the terms.
+ */
+export const PRICE_FOUNDING = "£149";
+export const PRICE_STANDARD = "£249";
+
+/** Business-facing description. The homepage sells to businesses. */
 export const SITE_DESCRIPTION =
-  "Discovered Local connects Portsmouth creators with great local restaurants, cafés, businesses and experiences. Apply to become a local creator.";
+  `Discovered Local connects Portsmouth businesses with local TikTok and Instagram creators. Get 4 creator collaborations every month for ${PRICE_FOUNDING} as a founding business.`;
+export const CREATOR_DESCRIPTION =
+  "Join Discovered Local and get opportunities to discover Portsmouth restaurants, cafés, bars and local businesses as a creator.";
 
 const DEFAULT_SITE_URL = "https://discoveredlocal.com";
 
@@ -98,6 +110,37 @@ export const COMPLIMENTARY_ANSWERS = [
   "Depends on the opportunity",
   "No",
 ] as const;
+
+/** Business types on the lead form — plain language, not the creator taxonomy. */
+export const LEAD_BUSINESS_TYPES = [
+  "Restaurant",
+  "Café",
+  "Bar / Pub",
+  "Takeaway",
+  "Hotel",
+  "Activity",
+  "Retail",
+  "Beauty / Wellness",
+  "Other",
+] as const;
+
+export const LEAD_STATUSES = [
+  "new",
+  "contacted",
+  "qualified",
+  "customer",
+  "not_interested",
+] as const;
+
+export type LeadStatus = (typeof LEAD_STATUSES)[number];
+
+export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
+  new: "New",
+  contacted: "Contacted",
+  qualified: "Qualified",
+  customer: "Customer",
+  not_interested: "Not interested",
+};
 
 export const CREATOR_STATUSES = [
   "applied",

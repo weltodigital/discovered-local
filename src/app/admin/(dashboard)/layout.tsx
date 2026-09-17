@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
+import { AdminNav } from "@/components/admin/AdminNav";
 import { getAdminSession } from "@/lib/auth";
 import { signOut } from "../actions";
 
@@ -40,7 +41,10 @@ export default async function AdminDashboardLayout({
           </Link>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-ink-muted sm:block">
+            <div className="hidden md:block">
+              <AdminNav />
+            </div>
+            <span className="hidden text-sm text-ink-muted lg:block">
               {session.email}
             </span>
             <form action={signOut}>
@@ -52,6 +56,9 @@ export default async function AdminDashboardLayout({
               </button>
             </form>
           </div>
+        </div>
+        <div className="container-page pb-3 md:hidden">
+          <AdminNav />
         </div>
       </header>
 

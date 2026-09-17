@@ -3,12 +3,20 @@
 import { track } from "@vercel/analytics";
 
 /**
- * The four events that matter for the only metric we care about right now:
- * visitor -> application conversion.
+ * Two funnels, tracked end to end.
+ *
+ *   Business: homepage_view -> business_cta_clicked -> business_lead_started
+ *             -> business_lead_submitted
+ *   Creator:  creator_page_view -> creator_cta_clicked -> application_started
+ *             -> application_submitted
  */
 export type AnalyticsEvent =
-  | "landing_page_view"
-  | "apply_button_clicked"
+  | "homepage_view"
+  | "business_cta_clicked"
+  | "business_lead_started"
+  | "business_lead_submitted"
+  | "creator_page_view"
+  | "creator_cta_clicked"
   | "application_started"
   | "application_submitted";
 

@@ -103,7 +103,7 @@ export async function submitApplication(raw: unknown): Promise<SubmitState> {
       return {
         status: "duplicate",
         message:
-          "Looks like you've already applied with this email — we've got your application and we'll be in touch.",
+          "Looks like you've already applied with this email. We've got your application and we'll be in touch.",
       };
     }
     console.error("[apply] insert failed", error);

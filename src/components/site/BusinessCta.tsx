@@ -4,13 +4,14 @@ import Link from "next/link";
 
 import { trackEvent } from "@/lib/analytics";
 import { buttonStyles } from "@/components/ui/button";
+import { PRICE_FOUNDING } from "@/lib/constants";
 
 /**
- * Every route into /apply goes through here so `creator_cta_clicked` is
- * recorded consistently, with the section it came from.
+ * The revenue button. Every route into /get-started goes through here so
+ * `business_cta_clicked` always records which section did the persuading.
  */
-export function ApplyCta({
-  children = "Apply to become a creator",
+export function BusinessCta({
+  children = `Get started for ${PRICE_FOUNDING}/month`,
   location,
   variant = "primary",
   size = "lg",
@@ -24,8 +25,8 @@ export function ApplyCta({
 }) {
   return (
     <Link
-      href="/apply"
-      onClick={() => trackEvent("creator_cta_clicked", { location })}
+      href="/get-started"
+      onClick={() => trackEvent("business_cta_clicked", { location })}
       className={buttonStyles({ variant, size, className })}
     >
       {children}

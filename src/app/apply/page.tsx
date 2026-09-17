@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 const REASSURANCE = [
-  { label: "Takes about 3 minutes", detail: "Three short sections, that's it." },
+  { label: "Takes about 3 minutes", detail: "Three short sections, that’s it." },
   { label: "No follower minimum", detail: "We care about the content, not the count." },
   { label: "Free to join", detail: "Portsmouth and the surrounding area, for now." },
 ];
@@ -26,7 +26,7 @@ const REASSURANCE = [
 export default function ApplyPage() {
   return (
     <>
-      <SiteHeader />
+      <SiteHeader audience="creator" />
 
       <main className="container-page py-12 sm:py-16 lg:py-20">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20">

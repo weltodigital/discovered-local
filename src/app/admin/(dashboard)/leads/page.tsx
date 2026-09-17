@@ -1,9 +1,9 @@
 import Link from "next/link";
 
-import { StatusBadge } from "@/components/admin/StatusBadge";
-import { CREATOR_STATUSES, STATUS_LABELS, type CreatorStatus } from "@/lib/constants";
+import { LeadStatusBadge } from "@/components/admin/LeadStatusBadge";
+import { LEAD_STATUSES, LEAD_STATUS_LABELS } from "@/lib/constants";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CreatorRow } from "@/lib/types/database";
+import type { BusinessLeadRow } from "@/lib/types/database";
 
 export const dynamic = "force-dynamic";
 
@@ -17,25 +17,12 @@ function formatDate(value: string) {
   });
 }
 
-function formatFollowers(creator: CreatorRow) {
-  const parts = [
-    creator.instagram_followers != null
-      ? `IG ${creator.instagram_followers.toLocaleString("en-GB")}`
-      : null,
-    creator.tiktok_followers != null
-      ? `TT ${creator.tiktok_followers.toLocaleString("en-GB")}`
-      : null,
-  ].filter(Boolean);
-  return parts.length ? parts.join(" · ") : "-";
+/** The table only exists once 0002_business_leads.sql has been run. */
+function isMissingTable(code?: string) {
+  return code === "42P01" || code === "PGRST205";
 }
 
-function creatorLocation(creator: CreatorRow) {
-  return creator.location === "Other" && creator.location_other
-    ? creator.location_other
-    : creator.location;
-}
-
-export default async function AdminPage({
+export default async function AdminLeadsPage({
   searchParams,
 }: {
   searchParams: SearchParams;
@@ -44,12 +31,12 @@ export default async function AdminPage({
   const supabase = await createSupabaseServerClient();
 
   let query = supabase
-    .from("creators")
+    .from("business_leads")
     .select("*")
     .order("created_at", { ascending: false })
     .limit(500);
 
-  const statusFilter = CREATOR_STATUSES.find((option) => option === status);
+  const statusFilter = LEAD_STATUSES.find((option) => option === status);
   if (statusFilter) {
     query = query.eq("status", statusFilter);
   }
@@ -59,22 +46,21 @@ export default async function AdminPage({
   if (term) {
     query = query.or(
       [
-        `full_name.ilike.%${term}%`,
+        `business_name.ilike.%${term}%`,
+        `contact_name.ilike.%${term}%`,
         `email.ilike.%${term}%`,
-        `instagram_username.ilike.%${term}%`,
-        `tiktok_username.ilike.%${term}%`,
         `location.ilike.%${term}%`,
-        `location_other.ilike.%${term}%`,
+        `business_type.ilike.%${term}%`,
       ].join(","),
     );
   }
 
   const [{ data, error }, { data: allStatuses }] = await Promise.all([
     query,
-    supabase.from("creators").select("status"),
+    supabase.from("business_leads").select("status"),
   ]);
 
-  const creators = (data ?? []) as CreatorRow[];
+  const leads = (data ?? []) as BusinessLeadRow[];
 
   const counts = new Map<string, number>();
   for (const row of allStatuses ?? []) {
@@ -87,7 +73,7 @@ export default async function AdminPage({
     if (term) params.set("q", term);
     if (nextStatus) params.set("status", nextStatus);
     const search = params.toString();
-    return search ? `/admin?${search}` : "/admin";
+    return search ? `/admin/leads?${search}` : "/admin/leads";
   };
 
   return (
@@ -95,11 +81,11 @@ export default async function AdminPage({
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-[-0.025em] sm:text-3xl">
-            Creator applications
+            Business leads
           </h1>
           <p className="mt-1.5 text-[0.95rem] text-ink-muted">
-            {total} {total === 1 ? "application" : "applications"} so far
-            {status || term ? ` · showing ${creators.length}` : ""}
+            {total} {total === 1 ? "enquiry" : "enquiries"} so far
+            {status || term ? ` · showing ${leads.length}` : ""}
           </p>
         </div>
 
@@ -109,8 +95,8 @@ export default async function AdminPage({
             type="search"
             name="q"
             defaultValue={q}
-            placeholder="Search name, email, handle…"
-            aria-label="Search applications"
+            placeholder="Search business, contact, email…"
+            aria-label="Search business leads"
             className="h-11 w-full rounded-xl border border-line-strong bg-paper px-4 text-[0.95rem] focus:border-ink focus:outline-none sm:w-72"
           />
           <button
@@ -126,12 +112,14 @@ export default async function AdminPage({
         <Link
           href={filterHref("")}
           className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
-            status ? "border-line-strong text-ink-muted hover:border-ink" : "border-ink bg-ink text-paper"
+            status
+              ? "border-line-strong text-ink-muted hover:border-ink"
+              : "border-ink bg-ink text-paper"
           }`}
         >
           All ({total})
         </Link>
-        {CREATOR_STATUSES.map((option) => (
+        {LEAD_STATUSES.map((option) => (
           <Link
             key={option}
             href={filterHref(option)}
@@ -141,46 +129,52 @@ export default async function AdminPage({
                 : "border-line-strong text-ink-muted hover:border-ink"
             }`}
           >
-            {STATUS_LABELS[option]} ({counts.get(option) ?? 0})
+            {LEAD_STATUS_LABELS[option]} ({counts.get(option) ?? 0})
           </Link>
         ))}
       </nav>
 
       {error ? (
         <p className="mt-8 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
-          Couldn&rsquo;t load applications: {error.message}
+          {isMissingTable(error.code)
+            ? "The business_leads table doesn't exist yet. Run supabase/migrations/0002_business_leads.sql in the Supabase SQL editor."
+            : `Couldn't load business leads: ${error.message}`}
         </p>
       ) : null}
 
-      {!error && creators.length === 0 ? (
+      {!error && leads.length === 0 ? (
         <p className="mt-10 rounded-2xl border border-dashed border-line-strong px-6 py-14 text-center text-ink-muted">
           {total === 0
-            ? "No applications yet. Share the link with Portsmouth creators."
-            : "No applications match that search."}
+            ? "No business enquiries yet. Every /get-started submission lands here."
+            : "No enquiries match that search."}
         </p>
       ) : null}
 
       {/* Mobile: cards */}
       <ul className="mt-6 flex flex-col gap-3 lg:hidden">
-        {creators.map((creator) => (
-          <li key={creator.id}>
+        {leads.map((lead) => (
+          <li key={lead.id}>
             <Link
-              href={`/admin/creators/${creator.id}`}
+              href={`/admin/leads/${lead.id}`}
               className="flex flex-col gap-2 rounded-2xl border border-line bg-paper p-4 transition-colors hover:border-ink"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-semibold tracking-[-0.01em]">{creator.full_name}</p>
-                  <p className="text-sm text-ink-muted">{creatorLocation(creator)}</p>
+                  <p className="font-semibold tracking-[-0.01em]">
+                    {lead.business_name}
+                  </p>
+                  <p className="text-sm text-ink-muted">
+                    {lead.business_type ?? "-"}
+                    {lead.location ? ` · ${lead.location}` : ""}
+                  </p>
                 </div>
-                <StatusBadge status={creator.status} />
+                <LeadStatusBadge status={lead.status} />
               </div>
               <p className="text-sm text-ink-muted">
-                {creator.instagram_username ? `@${creator.instagram_username}` : "-"} ·{" "}
-                {formatFollowers(creator)}
+                {lead.contact_name} · {lead.email}
               </p>
               <p className="text-xs text-ink-muted">
-                Applied {formatDate(creator.created_at)}
+                Enquired {formatDate(lead.created_at)}
               </p>
             </Link>
           </li>
@@ -188,58 +182,52 @@ export default async function AdminPage({
       </ul>
 
       {/* Desktop: table */}
-      {creators.length > 0 ? (
+      {leads.length > 0 ? (
         <div className="mt-6 hidden overflow-x-auto rounded-2xl border border-line lg:block">
-          <table className="w-full min-w-[58rem] border-collapse text-left text-sm">
+          <table className="w-full min-w-[54rem] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-line bg-paper-deep text-xs tracking-wide text-ink-muted uppercase">
-                <th className="px-3 py-3 font-medium whitespace-nowrap">Name</th>
+                <th className="px-3 py-3 font-medium whitespace-nowrap">Business</th>
+                <th className="px-3 py-3 font-medium whitespace-nowrap">Type</th>
+                <th className="px-3 py-3 font-medium whitespace-nowrap">Contact</th>
+                <th className="px-3 py-3 font-medium whitespace-nowrap">Phone</th>
                 <th className="px-3 py-3 font-medium whitespace-nowrap">Location</th>
-                <th className="px-3 py-3 font-medium whitespace-nowrap">Instagram</th>
-                <th className="px-3 py-3 font-medium whitespace-nowrap">TikTok</th>
-                <th className="px-3 py-3 font-medium whitespace-nowrap">Followers</th>
-                <th className="px-3 py-3 font-medium whitespace-nowrap">Platform</th>
-                <th className="px-3 py-3 font-medium whitespace-nowrap">Content</th>
-                <th className="px-3 py-3 font-medium whitespace-nowrap">Applied</th>
+                <th className="px-3 py-3 font-medium whitespace-nowrap">Enquired</th>
                 <th className="px-3 py-3 font-medium whitespace-nowrap">Status</th>
               </tr>
             </thead>
             <tbody>
-              {creators.map((creator) => (
+              {leads.map((lead) => (
                 <tr
-                  key={creator.id}
+                  key={lead.id}
                   className="border-b border-line last:border-0 hover:bg-paper-deep/60"
                 >
-                  <td className="max-w-[11rem] px-3 py-3">
+                  <td className="max-w-[13rem] px-3 py-3">
                     <Link
-                      href={`/admin/creators/${creator.id}`}
+                      href={`/admin/leads/${lead.id}`}
                       className="font-medium underline-offset-2 hover:underline"
                     >
-                      {creator.full_name}
+                      {lead.business_name}
                     </Link>
-                    <span className="block truncate text-xs text-ink-muted">{creator.email}</span>
-                  </td>
-                  <td className="px-3 py-3 text-ink-muted">{creatorLocation(creator)}</td>
-                  <td className="px-3 py-3 text-ink-muted">
-                    {creator.instagram_username ? `@${creator.instagram_username}` : "-"}
+                    <span className="block truncate text-xs text-ink-muted">
+                      {lead.email}
+                    </span>
                   </td>
                   <td className="px-3 py-3 text-ink-muted">
-                    {creator.tiktok_username ? `@${creator.tiktok_username}` : "-"}
+                    {lead.business_type ?? "-"}
+                  </td>
+                  <td className="px-3 py-3 text-ink-muted">{lead.contact_name}</td>
+                  <td className="px-3 py-3 whitespace-nowrap text-ink-muted">
+                    {lead.phone ?? "-"}
+                  </td>
+                  <td className="max-w-[10rem] truncate px-3 py-3 text-ink-muted">
+                    {lead.location ?? "-"}
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap text-ink-muted">
-                    {formatFollowers(creator)}
-                  </td>
-                  <td className="px-3 py-3 text-ink-muted">
-                    {creator.primary_platform ?? "-"}
-                  </td>
-                  <td className="max-w-[8rem] truncate px-3 py-3 text-xs text-ink-muted">
-                    {creator.content_types.length ? creator.content_types.join(", ") : "-"}
-                  </td>
-                  <td className="px-3 py-3 whitespace-nowrap text-ink-muted">
-                    {formatDate(creator.created_at)}
+                    {formatDate(lead.created_at)}
                   </td>
                   <td className="px-3 py-3">
-                    <StatusBadge status={creator.status as CreatorStatus} />
+                    <LeadStatusBadge status={lead.status} />
                   </td>
                 </tr>
               ))}

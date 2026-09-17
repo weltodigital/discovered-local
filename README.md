@@ -2,21 +2,39 @@
 
 A UK local creator marketing platform, starting in Portsmouth.
 
-This repository is the MVP: a landing page that recruits Portsmouth creators, an
-application form that saves to Supabase, and a private admin area for reviewing
-applicants. The business subscription side of the product is deliberately not
-built yet.
+Two audiences, two funnels. The homepage sells the monthly creator service to
+local businesses; `/creators` recruits the creators who make it work. Both funnels end
+in a Supabase table and a private admin area.
 
-- `/` — landing page
-- `/apply` — creator application (3 short steps)
+- `/` — business homepage (the monthly offer)
+- `/get-started` — business enquiry form → `business_leads`
+- `/creators` — creator proposition
+- `/apply` — creator application (3 short steps) → `creators`
 - `/success` — post-application confirmation
-- `/admin` — private dashboard (Supabase email/password auth)
+- `/admin` — private dashboard: creators *and* business leads
 - `/privacy`, `/terms` — supporting pages
+
+Billing is deliberately not built. `/get-started` starts a conversation; there
+is no Stripe subscription yet.
 
 ## Stack
 
 Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Supabase (Postgres +
-Auth + RLS) · React Hook Form + Zod · Vercel Web Analytics.
+Auth + RLS) · React Hook Form + Zod · Motion · Vercel Web Analytics.
+
+### Pricing
+
+`PRICE_FOUNDING` and `PRICE_STANDARD` in `src/lib/constants.ts` are the single
+source of truth. They feed the CTAs, both pricing cards, the metadata, the OG
+card and the terms, so changing the price is a one-line edit.
+
+### Motion
+
+Scroll entrances, the hero chain and the compounding counter use
+[Motion](https://motion.dev) (`motion/react`). Everything animated goes through
+`Reveal`, `CountUp` or a local variant set, and every one of them checks
+`useReducedMotion()` first, so the site is completely still for anyone who has
+asked for that. `EASE` in `src/components/site/Reveal.tsx` is the shared curve.
 
 ---
 
@@ -32,8 +50,15 @@ Auth + RLS) · React Hook Form + Zod · Vercel Web Analytics.
    - `public.admin_users` — who is allowed into `/admin`.
    - `public.is_admin()` — the security-definer helper the RLS policies use.
    - Row Level Security policies (see [Security](#4-security) below).
-3. Go to **Project Settings → API** and copy the project URL, the `anon` key and
+3. Run [`supabase/migrations/0002_business_leads.sql`](supabase/migrations/0002_business_leads.sql)
+   the same way. This adds:
+   - `public.business_leads` — enquiries from `/get-started`, with the same
+     admin-only RLS shape as `creators`.
+4. Go to **Project Settings → API** and copy the project URL, the `anon` key and
    the `service_role` key.
+
+Both migrations are additive and idempotent — running `0002` never touches the
+`creators` table, its policies or existing applications.
 
 The migration is idempotent, so it is safe to re-run.
 
@@ -80,19 +105,20 @@ npm run typecheck  # tsc --noEmit
 
 Row Level Security is on for every table. The rules are:
 
-| Who | `creators` |
-| --- | --- |
-| Anonymous visitors | `INSERT` only, and only rows with `status = 'applied'`, `consent = true` and no admin fields set |
-| Signed-in non-admins | nothing |
-| Admins (`admin_users` row) | `SELECT` and `UPDATE` |
-| Anyone | no `DELETE` |
+| Who | `creators` | `business_leads` |
+| --- | --- | --- |
+| Anonymous visitors | `INSERT` only, and only rows with `status = 'applied'`, `consent = true` and no admin fields set | nothing — writes only ever arrive through the server action |
+| Signed-in non-admins | nothing | nothing |
+| Admins (`admin_users` row) | `SELECT` and `UPDATE` | `SELECT` and `UPDATE` |
+| Anyone | no `DELETE` | no `DELETE` |
 
 Two more things worth knowing:
 
-- **The application endpoint is a server action** (`src/app/apply/actions.ts`).
-  It runs on the server with the service-role key so it can check for a
-  duplicate email without ever granting the public read access to the table. A
-  duplicate returns a friendly message, not a database error.
+- **Both public endpoints are server actions** (`src/app/apply/actions.ts` and
+  `src/app/get-started/actions.ts`). They run on the server with the
+  service-role key, so the browser never needs read — or, for business leads,
+  any — access to the tables. A duplicate creator email returns a friendly
+  message, not a database error.
 - **`/admin` is protected twice.** `src/proxy.ts` bounces signed-out requests to
   `/admin/login` before a page renders, and the admin layout re-checks the
   `admin_users` row on the server. Every admin server action re-checks it again.
@@ -142,16 +168,29 @@ build time.
 ## 7. Analytics
 
 Vercel Web Analytics records page views automatically. On top of that we track
-the four events that make up the funnel:
+both funnels end to end. Every CTA event carries a `location` property naming
+the section it was clicked from.
+
+**Business — the revenue funnel:**
 
 | Event | Fired when |
 | --- | --- |
-| `landing_page_view` | the landing page mounts |
-| `apply_button_clicked` | any "apply" CTA is clicked (with a `location` property naming the section) |
+| `homepage_view` | the business homepage mounts |
+| `business_cta_clicked` | any "get started" CTA is clicked |
+| `business_lead_started` | the enquirer focuses the first field on `/get-started` |
+| `business_lead_submitted` | the enquiry saves successfully |
+
+**Creator — the supply funnel:**
+
+| Event | Fired when |
+| --- | --- |
+| `creator_page_view` | `/creators` mounts |
+| `creator_cta_clicked` | any "become a creator" CTA is clicked |
 | `application_started` | the applicant focuses the first form field |
 | `application_submitted` | the application saves successfully |
 
-The metric that matters: **visitor → application conversion**.
+The event names are a closed union in `src/lib/analytics.ts`, so a typo is a
+type error rather than a silently missing metric.
 
 ---
 
@@ -160,28 +199,35 @@ The metric that matters: **visitor → application conversion**.
 ```
 src/
   app/
-    page.tsx                     landing page
-    apply/                       application form + server action
-    success/                     confirmation
+    page.tsx                     business homepage (the monthly offer)
+    get-started/                 business enquiry form + server action
+    creators/                    creator proposition + its own OG image
+    apply/                       creator application + server action
+    success/                     post-application confirmation
     admin/
       login/                     public sign-in page
-      actions.ts                 admin server actions (status, notes, sign out)
+      actions.ts                 admin server actions (statuses, notes, sign out)
       (dashboard)/               everything behind the admin check
-        page.tsx                 applications list, search, status filters
+        page.tsx                 creator applications list
         creators/[id]/page.tsx   application detail
+        leads/page.tsx           business leads list
+        leads/[id]/page.tsx      lead detail
     opengraph-image.tsx          generated OG image
     robots.ts, sitemap.ts        SEO
   components/
-    site/                        landing page building blocks
-    apply/                       form + field primitives
+    site/                        page building blocks, shared by both audiences
+    business/                    the business lead form
+    apply/                       the creator application form
     admin/                       admin-only components
-    ui/                          shared button styles
+    ui/                          button styles + form field primitives
   lib/
-    constants.ts                 locations, content types, statuses, copy config
-    validation/creator.ts        the single Zod schema, shared client and server
+    constants.ts                 locations, content types, statuses, the offer
+    validation/creator.ts        creator application schema (client + server)
+    validation/business.ts       business lead schema (client + server)
     supabase/                    browser / server / service-role clients
     notifications.ts             email hook-points (see below)
     analytics.ts                 event tracking
+    og.tsx                       shared Open Graph card renderer
   proxy.ts                       session refresh + /admin gate
 supabase/migrations/             schema, indexes and RLS policies
 ```
@@ -210,7 +256,7 @@ Brand colours live in one place, the `@theme` block in `src/app/globals.css`:
 Because the brand blue is light, primary buttons are blue with navy text
 (8.5:1 contrast) rather than white text.
 
-The landing page uses no photography yet. `src/components/site/ImageSlot.tsx`
+Neither page uses photography yet. `src/components/site/ImageSlot.tsx`
 renders tasteful placeholders that become real photos the moment you pass a
 `src` — nothing about the layout changes.
 
@@ -218,9 +264,11 @@ renders tasteful placeholders that become real photos the moment you pass a
 
 ## 10. Adding emails later
 
-`src/lib/notifications.ts` holds four empty functions that are already called in
-the right places:
+`src/lib/notifications.ts` holds empty functions that are already called in the
+right places:
 
+- `notifyAdminOfNewBusinessLead` — called after a successful `/get-started`
+  enquiry. This is the revenue funnel, so it is the first one worth wiring up.
 - `notifyAdminOfNewApplication` and `sendCreatorConfirmationEmail` — called
   after a successful application, wrapped so a failure can never lose the
   application itself.
@@ -234,7 +282,17 @@ to change.
 ## 11. Where this grows next
 
 The MVP is scoped tightly on purpose, but nothing here blocks the next steps:
-`creators` is a standalone table ready to gain a profile and a reliability
-score; the admin area is already a route group with its own auth boundary, so
-`businesses`, `opportunities` and `collaborations` can sit alongside it; and the
-validation schema and status list are single sources of truth in `src/lib`.
+`creators` and `business_leads` are standalone tables ready to gain a profile, a
+reliability score and a subscription; the admin area is already a route group
+with its own auth boundary, so `opportunities` and `collaborations` can sit
+alongside them; and the validation schemas and status lists are single sources
+of truth in `src/lib`.
+
+Two things the site deliberately does *not* have yet, and shouldn't gain by
+accident:
+
+- **Stripe.** `/get-started` collects an enquiry. Billing happens in a
+  conversation until the offer is proven.
+- **Social proof.** No testimonials, view counts or customer numbers exist
+  because no customers do. The founder-stage section on the homepage is the
+  placeholder; replace it with real results, not invented ones.

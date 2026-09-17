@@ -15,7 +15,7 @@ import {
   OptionList,
   TextArea,
   TextInput,
-} from "@/components/apply/fields";
+} from "@/components/ui/fields";
 import { trackEvent } from "@/lib/analytics";
 import {
   BUSINESS_TYPES,
@@ -394,7 +394,7 @@ export function ApplicationForm() {
 
           <Field
             label="Link to your best piece of content"
-            hint="A TikTok, a Reel, a post — whatever you're proudest of."
+            hint="A TikTok, a Reel, a post: whatever you're proudest of."
             htmlFor="contentLink1"
             error={errors.contentLink1?.message}
           >

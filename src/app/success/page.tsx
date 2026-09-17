@@ -17,7 +17,7 @@ export default function SuccessPage() {
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader audience="creator" />
 
       <main className="container-page flex min-h-[70vh] items-center py-16 sm:py-24">
         <div className="mx-auto max-w-2xl text-center">
@@ -59,14 +59,14 @@ export default function SuccessPage() {
               </a>
             ) : null}
             <Link
-              href="/"
+              href="/creators"
               className={buttonStyles({
                 variant: "ghost",
                 size: "lg",
                 className: "w-full sm:w-auto",
               })}
             >
-              Back to home
+              Back to creators
             </Link>
           </div>
         </div>

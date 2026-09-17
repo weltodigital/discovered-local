@@ -11,7 +11,7 @@ import { updateCreatorNotes } from "@/app/admin/actions";
 export const dynamic = "force-dynamic";
 
 function formatDateTime(value: string | null) {
-  if (!value) return "—";
+  if (!value) return "-";
   return new Date(value).toLocaleString("en-GB", {
     day: "numeric",
     month: "short",
@@ -129,7 +129,7 @@ export default async function CreatorDetailPage({
                     {creator.phone}
                   </a>
                 ) : (
-                  "—"
+                  "-"
                 )}
               </Row>
               <Row label="Instagram">
@@ -140,7 +140,7 @@ export default async function CreatorDetailPage({
                     @{creator.instagram_username}
                   </ExternalLink>
                 ) : (
-                  "—"
+                  "-"
                 )}
               </Row>
               <Row label="TikTok">
@@ -151,19 +151,19 @@ export default async function CreatorDetailPage({
                     @{creator.tiktok_username}
                   </ExternalLink>
                 ) : (
-                  "—"
+                  "-"
                 )}
               </Row>
               <Row label="Followers">
                 {creator.instagram_followers != null
                   ? `Instagram ${creator.instagram_followers.toLocaleString("en-GB")}`
-                  : "Instagram —"}
+                  : "Instagram -"}
                 {" · "}
                 {creator.tiktok_followers != null
                   ? `TikTok ${creator.tiktok_followers.toLocaleString("en-GB")}`
-                  : "TikTok —"}
+                  : "TikTok -"}
               </Row>
-              <Row label="Main platform">{creator.primary_platform ?? "—"}</Row>
+              <Row label="Main platform">{creator.primary_platform ?? "-"}</Row>
             </dl>
           </section>
 
@@ -173,7 +173,7 @@ export default async function CreatorDetailPage({
             </h2>
             <dl className="mt-3 rounded-2xl border border-line bg-paper px-4">
               <Row label="Content types">
-                {creator.content_types.length ? creator.content_types.join(", ") : "—"}
+                {creator.content_types.length ? creator.content_types.join(", ") : "-"}
               </Row>
               <Row label="Best content">
                 {creator.content_link_1 ? (
@@ -181,7 +181,7 @@ export default async function CreatorDetailPage({
                     {creator.content_link_1}
                   </ExternalLink>
                 ) : (
-                  "—"
+                  "-"
                 )}
               </Row>
               <Row label="Additional link">
@@ -190,7 +190,7 @@ export default async function CreatorDetailPage({
                     {creator.content_link_2}
                   </ExternalLink>
                 ) : (
-                  "—"
+                  "-"
                 )}
               </Row>
               <Row label="Portfolio">
@@ -199,11 +199,11 @@ export default async function CreatorDetailPage({
                     {creator.portfolio_url}
                   </ExternalLink>
                 ) : (
-                  "—"
+                  "-"
                 )}
               </Row>
               <Row label="About their content">
-                <span className="whitespace-pre-line">{creator.bio || "—"}</span>
+                <span className="whitespace-pre-line">{creator.bio || "-"}</span>
               </Row>
             </dl>
           </section>
@@ -216,18 +216,18 @@ export default async function CreatorDetailPage({
               <Row label="Wants to visit">
                 {creator.preferred_business_types.length
                   ? creator.preferred_business_types.join(", ")
-                  : "—"}
+                  : "-"}
               </Row>
-              <Row label="Frequency">{creator.collaboration_frequency ?? "—"}</Row>
+              <Row label="Frequency">{creator.collaboration_frequency ?? "-"}</Row>
               <Row label="Complimentary ok?">
-                {creator.complimentary_experience ?? "—"}
+                {creator.complimentary_experience ?? "-"}
               </Row>
               <Row label="Committed to visits">
                 {creator.commitment_ack ? "Yes" : "Not confirmed"}
               </Row>
               <Row label="Marketing consent">{creator.consent ? "Yes" : "No"}</Row>
               <Row label="Why they applied">
-                <span className="whitespace-pre-line">{creator.why_join || "—"}</span>
+                <span className="whitespace-pre-line">{creator.why_join || "-"}</span>
               </Row>
             </dl>
           </section>

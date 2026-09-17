@@ -13,6 +13,7 @@ export function ImageSlot({
   label,
   tone = "sand",
   className = "",
+  sizes = "(max-width: 768px) 90vw, 40vw",
   children,
 }: {
   src?: string;
@@ -20,6 +21,8 @@ export function ImageSlot({
   label?: string;
   tone?: "sand" | "ink" | "accent" | "moss";
   className?: string;
+  /** Match the rendered size, or Next serves a far larger file than needed. */
+  sizes?: string;
   children?: React.ReactNode;
 }) {
   const tones: Record<string, string> = {
@@ -34,7 +37,7 @@ export function ImageSlot({
       className={`relative overflow-hidden ${src ? "bg-sand" : tones[tone]} ${className}`}
     >
       {src ? (
-        <Image src={src} alt={alt} fill sizes="(max-width: 768px) 90vw, 40vw" className="object-cover" />
+        <Image src={src} alt={alt} fill sizes={sizes} className="object-cover" />
       ) : (
         <>
           {/* Soft optical texture so the placeholder reads as a composition, not a gap. */}

@@ -23,18 +23,19 @@ const display = Instrument_Serif({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — Portsmouth Creators & Local Businesses`,
-    template: `%s — ${SITE_NAME}`,
+    default: `${SITE_NAME} | Get Discovered by Local Creators`,
+    template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: [
+    "local creator marketing",
+    "local influencer marketing",
     "Portsmouth creators",
-    "Portsmouth food creators",
     "Portsmouth TikTok creators",
-    "Portsmouth Instagram creators",
-    "local creators Portsmouth",
-    "Portsmouth restaurants",
+    "Portsmouth restaurant marketing",
+    "restaurant influencer marketing",
+    "local content creators",
   ],
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   alternates: { canonical: "/" },
@@ -43,12 +44,12 @@ export const metadata: Metadata = {
     locale: "en_GB",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} — Portsmouth Creators & Local Businesses`,
+    title: `${SITE_NAME} | Get Discovered by Local Creators`,
     description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — Portsmouth Creators & Local Businesses`,
+    title: `${SITE_NAME} | Get Discovered by Local Creators`,
     description: SITE_DESCRIPTION,
   },
   robots: {
@@ -66,7 +67,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-GB" className={`${inter.variable} ${display.variable}`}>
+    // `data-scroll-behavior` is required from Next 16: without it the CSS
+    // `scroll-behavior: smooth` in globals.css swallows the scroll-to-top on
+    // navigation, so you land at whatever offset you left the last page at.
+    <html
+      lang="en-GB"
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${display.variable}`}
+    >
       <body className="min-h-dvh bg-paper text-ink antialiased">
         {children}
         <Analytics />

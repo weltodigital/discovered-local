@@ -13,7 +13,8 @@ export default function NotFound() {
           <p className="eyebrow">404</p>
           <h1 className="h-section mt-4">Nothing to discover here.</h1>
           <p className="mt-5 text-lg leading-relaxed text-ink-muted">
-            That page doesn&rsquo;t exist — but the creator community is still open.
+            That page doesn&rsquo;t exist, but there&rsquo;s plenty left to
+            discover.
           </p>
           <Link
             href="/"

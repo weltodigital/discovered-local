@@ -1,4 +1,4 @@
-import type { CreatorStatus } from "@/lib/constants";
+import type { CreatorStatus, LeadStatus } from "@/lib/constants";
 
 export type CreatorRow = {
   id: string;
@@ -41,6 +41,34 @@ export type CreatorUpdate = Partial<
   Pick<CreatorRow, "status" | "admin_notes" | "reviewed_at">
 >;
 
+export type BusinessLeadRow = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  business_name: string;
+  contact_name: string;
+  email: string;
+  phone: string | null;
+  website: string | null;
+  instagram: string | null;
+  business_type: string | null;
+  location: string | null;
+  notes: string | null;
+  status: LeadStatus;
+  admin_notes: string | null;
+};
+
+export type BusinessLeadInsert = Omit<
+  BusinessLeadRow,
+  "id" | "created_at" | "updated_at" | "admin_notes" | "status"
+> & {
+  status?: LeadStatus;
+};
+
+export type BusinessLeadUpdate = Partial<
+  Pick<BusinessLeadRow, "status" | "admin_notes">
+>;
+
 export type AdminUserRow = {
   user_id: string;
   email: string | null;
@@ -55,6 +83,12 @@ export type Database = {
         Row: CreatorRow;
         Insert: CreatorInsert;
         Update: CreatorUpdate;
+        Relationships: [];
+      };
+      business_leads: {
+        Row: BusinessLeadRow;
+        Insert: BusinessLeadInsert;
+        Update: BusinessLeadUpdate;
         Relationships: [];
       };
       admin_users: {

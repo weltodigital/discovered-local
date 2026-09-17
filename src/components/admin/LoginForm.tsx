@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { buttonStyles } from "@/components/ui/button";
-import { Field, TextInput } from "@/components/apply/fields";
+import { Field, TextInput } from "@/components/ui/fields";
 
 export function LoginForm() {
   const router = useRouter();

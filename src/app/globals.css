@@ -116,20 +116,6 @@
   letter-spacing: -0.01em;
 }
 
-/* Subtle entrance, disabled for anyone who asks for reduced motion. */
-@utility reveal {
-  opacity: 0;
-  transform: translateY(14px);
-  transition:
-    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@utility reveal-in {
-  opacity: 1;
-  transform: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
