@@ -154,6 +154,9 @@ export default async function LeadDetailPage({
               <Row label="What they said">
                 <span className="whitespace-pre-line">{lead.notes || "-"}</span>
               </Row>
+              <Row label="Contact consent">
+                {lead.consent ? "Yes" : "Not recorded (enquired before we asked)"}
+              </Row>
             </dl>
           </section>
         </div>

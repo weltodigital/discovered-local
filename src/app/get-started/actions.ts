@@ -55,6 +55,7 @@ export async function submitBusinessLead(raw: unknown): Promise<LeadState> {
     business_type: values.businessType,
     location: orNull(values.location),
     notes: orNull(values.notes),
+    consent: values.consent,
     status: "new",
   };
 

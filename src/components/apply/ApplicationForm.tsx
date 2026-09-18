@@ -577,10 +577,15 @@ export function ApplicationForm() {
                 onChange={field.onChange}
                 error={errors.consent?.message}
               >
-                I&rsquo;d like to hear from Discovered Local about creator
-                opportunities and collaborations. See our{" "}
+                I&rsquo;m happy for Discovered Local to store my application and
+                contact me about creator opportunities and collaborations, as set
+                out in the{" "}
                 <Link href="/privacy" className="underline underline-offset-2">
                   privacy policy
+                </Link>{" "}
+                and{" "}
+                <Link href="/terms" className="underline underline-offset-2">
+                  terms
                 </Link>
                 .
               </CheckboxField>

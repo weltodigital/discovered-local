@@ -12,7 +12,7 @@ in a Supabase table and a private admin area.
 - `/apply` — creator application (3 short steps) → `creators`
 - `/success` — post-application confirmation
 - `/admin` — private dashboard: creators *and* business leads
-- `/privacy`, `/terms` — supporting pages
+- `/privacy`, `/cookies`, `/terms` — supporting pages
 
 Billing is deliberately not built. `/get-started` starts a conversation; there
 is no Stripe subscription yet.
@@ -57,8 +57,11 @@ asked for that. `EASE` in `src/components/site/Reveal.tsx` is the shared curve.
 4. Go to **Project Settings → API** and copy the project URL, the `anon` key and
    the `service_role` key.
 
-Both migrations are additive and idempotent — running `0002` never touches the
-`creators` table, its policies or existing applications.
+4. Run [`supabase/migrations/0003_business_leads_consent.sql`](supabase/migrations/0003_business_leads_consent.sql).
+   This adds the `consent` column that the business enquiry form now writes.
+
+All migrations are additive and idempotent — running `0002` or `0003` never
+touches the `creators` table, its policies or existing applications.
 
 The migration is idempotent, so it is safe to re-run.
 

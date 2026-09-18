@@ -7,7 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { submitBusinessLead } from "@/app/get-started/actions";
 import { buttonStyles } from "@/components/ui/button";
-import { Field, OptionList, TextArea, TextInput } from "@/components/ui/fields";
+import {
+  CheckboxField,
+  Field,
+  OptionList,
+  TextArea,
+  TextInput,
+} from "@/components/ui/fields";
 import { trackEvent } from "@/lib/analytics";
 import { LEAD_BUSINESS_TYPES } from "@/lib/constants";
 import {
@@ -278,6 +284,26 @@ export function BusinessLeadForm() {
           />
         </Field>
 
+        <Controller
+          control={control}
+          name="consent"
+          render={({ field }) => (
+            <CheckboxField
+              id="consent"
+              checked={Boolean(field.value)}
+              onChange={field.onChange}
+              error={errors.consent?.message}
+            >
+              I&rsquo;m happy for Discovered Local to store these details and contact
+              me about the service. See our{" "}
+              <Link href="/privacy" className="underline underline-offset-2">
+                privacy policy
+              </Link>
+              .
+            </CheckboxField>
+          )}
+        />
+
         <button
           type="submit"
           disabled={isSubmitting}
@@ -287,12 +313,8 @@ export function BusinessLeadForm() {
         </button>
 
         <p className="text-sm leading-relaxed text-ink-muted">
-          We&rsquo;ll only use your details to talk to you about Discovered Local. See
-          our{" "}
-          <Link href="/privacy" className="underline underline-offset-2">
-            privacy policy
-          </Link>
-          .
+          We&rsquo;ll only use your details to talk to you about Discovered Local.
+          You can ask us to stop or delete them at any time.
         </p>
       </form>
     </>

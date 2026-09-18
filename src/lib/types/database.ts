@@ -54,6 +54,7 @@ export type BusinessLeadRow = {
   business_type: string | null;
   location: string | null;
   notes: string | null;
+  consent: boolean;
   status: LeadStatus;
   admin_notes: string | null;
 };

@@ -11,6 +11,7 @@ export function SiteFooter() {
     { href: "/#how-it-works", label: "How It Works", external: false },
     { href: "/apply", label: "Become a Creator", external: false },
     { href: "/privacy", label: "Privacy", external: false },
+    { href: "/cookies", label: "Cookies", external: false },
     { href: "/terms", label: "Terms", external: false },
   ];
 

@@ -44,6 +44,9 @@ export const businessLeadSchema = z.object({
   }),
   location: optionalText(120),
   notes: optionalText(1500),
+  consent: z.literal(true, {
+    message: "We need your permission to get back to you.",
+  }),
 });
 
 export type BusinessLeadFormValues = z.input<typeof businessLeadSchema>;
@@ -59,4 +62,5 @@ export const businessLeadDefaults: BusinessLeadFormValues = {
   businessType: undefined as unknown as BusinessLeadFormValues["businessType"],
   location: "",
   notes: "",
+  consent: false as unknown as true,
 };
