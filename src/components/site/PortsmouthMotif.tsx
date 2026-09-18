@@ -1,68 +1,75 @@
+import Image from "next/image";
+
 /**
- * Abstract map motif: the two harbours, the island between them and the
- * Solent below. A city reference, not a navigational map or a tourism poster.
+ * A real map of the city with our own place labels on top, so the typography
+ * matches the site.
+ *
+ * `/portsmouth-map.png` is a one-off render of OpenStreetMap data (via
+ * OpenFreeMap's Positron style, recoloured to the paper palette) — a static
+ * image rather than a live tile layer, so there is no map library, no
+ * third-party requests and no API key to expire. The pins are projected from
+ * real coordinates using the same centre and scale the image was rendered
+ * at, which is what the constants below record. Re-render the image and
+ * update them together.
  */
+const IMAGE = { src: "/portsmouth-map.png", size: 1800 };
+
+/** Web Mercator tile zoom the image was rendered at (256 px tiles). */
+const ZOOM = 13;
+/** Width of the square image in map pixels at ZOOM — about 11 km here. */
+const VIEW = 900;
+/** Portsea Island, nudged north so nothing sits under the header card on phones. */
+const CENTER = { lat: 50.824, lon: -1.082 };
+
 const PLACES = [
-  { name: "Portchester", x: 9, y: 17 },
-  { name: "Cosham", x: 50, y: 23 },
-  { name: "Fratton", x: 53, y: 48 },
-  { name: "Old Portsmouth", x: 41, y: 70 },
-  { name: "Southsea", x: 55, y: 78 },
+  { name: "Portchester", lat: 50.842, lon: -1.117 },
+  { name: "Cosham", lat: 50.845, lon: -1.066 },
+  { name: "Fratton", lat: 50.797, lon: -1.078 },
+  { name: "Old Portsmouth", lat: 50.79, lon: -1.105 },
+  { name: "Southsea", lat: 50.782, lon: -1.083 },
 ];
+
+/** Web Mercator, in map pixels at ZOOM. */
+function project(lat: number, lon: number) {
+  const world = 2 ** ZOOM * 256;
+  const rad = (lat * Math.PI) / 180;
+  return {
+    x: ((lon + 180) / 360) * world,
+    y: ((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2) * world,
+  };
+}
+
+const centre = project(CENTER.lat, CENTER.lon);
+
+const MARKERS = PLACES.map((place) => {
+  const p = project(place.lat, place.lon);
+  return {
+    name: place.name,
+    left: ((p.x - centre.x) / VIEW + 0.5) * 100,
+    top: ((p.y - centre.y) / VIEW + 0.5) * 100,
+  };
+});
 
 export function PortsmouthMotif() {
   return (
     <div className="relative aspect-square w-full overflow-hidden rounded-3xl border border-line bg-paper">
-      <svg viewBox="0 0 100 100" className="absolute inset-0 size-full" aria-hidden>
-        <defs>
-          <pattern id="dl-grid" width="5" height="5" patternUnits="userSpaceOnUse">
-            <path d="M5 0H0V5" fill="none" stroke="var(--color-line)" strokeWidth="0.25" />
-          </pattern>
-        </defs>
+      <Image
+        src={IMAGE.src}
+        alt="Map of Portsmouth, from Portchester and Cosham in the north to Old Portsmouth and Southsea on the coast"
+        width={IMAGE.size}
+        height={IMAGE.size}
+        sizes="(min-width: 1024px) 40vw, 100vw"
+        className="absolute inset-0 size-full object-cover"
+      />
 
-        <rect width="100" height="100" fill="url(#dl-grid)" />
-
-        {/* Water: Portsmouth Harbour, Langstone Harbour, the Solent. */}
-        <g fill="var(--color-sand)">
-          <path d="M24 20 C32 23 35 33 35 46 C35 58 33 64 33 74 C33 81 32 86 31 90 L26 90 C25 82 24 74 23 68 C21 59 14 53 12 45 C9 33 14 18 24 20 Z" />
-          <path d="M84 22 C77 25 74 34 74 46 C74 57 75 64 75 74 C75 82 76 86 77 90 L82 90 C83 82 84 74 85 68 C87 59 94 53 96 45 C98 34 93 20 84 22 Z" />
-          <path d="M0 88 C22 92 44 89 66 93 C80 95 90 94 100 92 L100 100 L0 100 Z" />
-        </g>
-
-        {/* Portsea Island */}
-        <path
-          d="M38 20 C48 14 62 14 70 21 C74 32 74 50 72 64 C70 77 66 84 58 86 C48 87 42 81 40 70 C38 56 36 34 38 20 Z"
-          fill="none"
-          stroke="var(--color-ink)"
-          strokeWidth="0.8"
-          opacity="0.4"
-        />
-
-        {/* Mainland edge */}
-        <path
-          d="M0 10 C10 7 22 6 34 8 C44 9.5 56 11 68 10.5 C82 10 92 8 100 5"
-          fill="none"
-          stroke="var(--color-ink)"
-          strokeWidth="0.7"
-          opacity="0.16"
-        />
-
-        {/* Routes */}
-        <g fill="none" stroke="var(--color-line-strong)" strokeWidth="0.5">
-          <path d="M50 19 C54 32 55 46 56 58 C57 70 57 78 58 86" />
-          <path d="M40 42 C50 41 60 40 71 39" />
-          <path d="M40 66 C50 67 60 68 71 66" />
-        </g>
-      </svg>
-
-      {PLACES.map((place) => (
+      {MARKERS.map((place) => (
         <div
           key={place.name}
-          className="absolute flex -translate-y-1/2 items-center gap-1.5"
-          style={{ left: `${place.x}%`, top: `${place.y}%` }}
+          className="absolute flex -translate-x-[0.1875rem] -translate-y-1/2 items-center gap-1.5"
+          style={{ left: `${place.left}%`, top: `${place.top}%` }}
         >
-          <span className="size-1.5 shrink-0 rounded-full bg-accent-deep ring-3 ring-accent/40" />
-          <span className="text-[0.7rem] font-medium tracking-[-0.01em] whitespace-nowrap text-ink-muted">
+          <span className="size-1.5 shrink-0 rounded-full bg-accent-deep ring-3 ring-accent/50" />
+          <span className="rounded-full bg-paper/85 px-1.5 py-0.5 text-[0.7rem] font-medium tracking-[-0.01em] whitespace-nowrap text-ink backdrop-blur-[2px]">
             {place.name}
           </span>
         </div>
@@ -72,6 +79,27 @@ export function PortsmouthMotif() {
         <p className="text-sm font-semibold tracking-[-0.01em]">Portsmouth, first.</p>
         <p className="text-xs text-ink-muted">More cities later</p>
       </div>
+
+      <p className="absolute bottom-2 left-2 max-w-[9rem] rounded-md bg-paper/80 px-1.5 py-0.5 text-[0.6rem] leading-snug text-ink-muted sm:max-w-none">
+        ©{" "}
+        <a
+          href="https://www.openstreetmap.org/copyright"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline"
+        >
+          OpenStreetMap
+        </a>{" "}
+        contributors ·{" "}
+        <a
+          href="https://openmaptiles.org/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline"
+        >
+          OpenMapTiles
+        </a>
+      </p>
     </div>
   );
 }
