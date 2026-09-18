@@ -4,14 +4,13 @@ A UK local creator marketing platform, starting in Portsmouth.
 
 Two audiences, two funnels. The homepage sells the monthly creator service to
 local businesses; `/creators` recruits the creators who make it work. Both funnels end
-in a Supabase table and a private admin area.
+in a Supabase table, read directly in the Supabase dashboard for now.
 
 - `/` — business homepage (the monthly offer)
 - `/get-started` — business enquiry form → `business_leads`
 - `/creators` — creator proposition
 - `/apply` — creator application (3 short steps) → `creators`
 - `/success` — post-application confirmation
-- `/admin` — private dashboard: creators *and* business leads
 - `/privacy`, `/cookies`, `/terms` — supporting pages
 
 Billing is deliberately not built. `/get-started` starts a conversation; there
@@ -47,8 +46,9 @@ asked for that. `EASE` in `src/components/site/Reveal.tsx` is the shared curve.
    run it. This creates:
    - `public.creators` — the applications table, with a unique index on
      `lower(email)` so one person can't apply twice.
-   - `public.admin_users` — who is allowed into `/admin`.
-   - `public.is_admin()` — the security-definer helper the RLS policies use.
+   - `public.admin_users` and `public.is_admin()` — the admin role check the
+     RLS policies use. Nothing in the site uses these yet; they're here for
+     when an admin area comes back.
    - Row Level Security policies (see [Security](#4-security) below).
 3. Run [`supabase/migrations/0002_business_leads.sql`](supabase/migrations/0002_business_leads.sql)
    the same way. This adds:
@@ -109,7 +109,6 @@ Row Level Security is on for every table. The rules are:
 | Who | `creators` | `business_leads` |
 | --- | --- | --- |
 | Anonymous visitors | `INSERT` only, and only rows with `status = 'applied'`, `consent = true` and no admin fields set | nothing — writes only ever arrive through the server action |
-| Signed-in non-admins | nothing | nothing |
 | Admins (`admin_users` row) | `SELECT` and `UPDATE` | `SELECT` and `UPDATE` |
 | Anyone | no `DELETE` | no `DELETE` |
 
@@ -120,36 +119,13 @@ Two more things worth knowing:
   service-role key, so the browser never needs read — or, for business leads,
   any — access to the tables. A duplicate creator email returns a friendly
   message, not a database error.
-- **`/admin` is protected twice.** `src/proxy.ts` bounces signed-out requests to
-  `/admin/login` before a page renders, and the admin layout re-checks the
-  `admin_users` row on the server. Every admin server action re-checks it again.
-  Admin reads and writes go through the signed-in user's client, so RLS is the
-  real boundary — not the UI.
+- **There is no admin UI.** Applications and leads are reviewed in the
+  Supabase dashboard. The `admin_users` RLS policies stay in place so an admin
+  area can be added back without touching the database.
 
 ---
 
-## 5. Creating an admin account
-
-Admin accounts are created deliberately, not through a sign-up form.
-
-1. In Supabase, go to **Authentication → Users → Add user**, and create a user
-   with an email and password. Tick *Auto Confirm User*.
-2. Copy that user's UUID.
-3. In the SQL editor, grant them admin access:
-
-   ```sql
-   insert into public.admin_users (user_id, email)
-   values ('<the-user-uuid>', 'you@discoveredlocal.com');
-   ```
-
-4. Sign in at `/admin/login`.
-
-To revoke access, delete the `admin_users` row. The auth user can still sign in
-but will be bounced straight back out of `/admin`.
-
----
-
-## 6. Deploying to Vercel
+## 5. Deploying to Vercel
 
 1. Push the repository to GitHub.
 2. In Vercel, **Add New → Project**, import the repo. The framework is detected
@@ -166,7 +142,7 @@ build time.
 
 ---
 
-## 7. Analytics
+## 6. Analytics
 
 Vercel Web Analytics records page views automatically. On top of that we track
 both funnels end to end. Every CTA event carries a `location` property naming
@@ -195,7 +171,7 @@ type error rather than a silently missing metric.
 
 ---
 
-## 8. Project structure
+## 7. Project structure
 
 ```
 src/
@@ -205,42 +181,32 @@ src/
     creators/                    creator proposition + its own OG image
     apply/                       creator application + server action
     success/                     post-application confirmation
-    admin/
-      login/                     public sign-in page
-      actions.ts                 admin server actions (statuses, notes, sign out)
-      (dashboard)/               everything behind the admin check
-        page.tsx                 creator applications list
-        creators/[id]/page.tsx   application detail
-        leads/page.tsx           business leads list
-        leads/[id]/page.tsx      lead detail
     opengraph-image.tsx          generated OG image
     robots.ts, sitemap.ts        SEO
   components/
     site/                        page building blocks, shared by both audiences
     business/                    the business lead form
     apply/                       the creator application form
-    admin/                       admin-only components
     ui/                          button styles + form field primitives
   lib/
     constants.ts                 locations, content types, statuses, the offer
     validation/creator.ts        creator application schema (client + server)
     validation/business.ts       business lead schema (client + server)
-    supabase/                    browser / server / service-role clients
+    supabase/                    service-role client (server only)
     notifications.ts             email hook-points (see below)
     analytics.ts                 event tracking
     og.tsx                       shared Open Graph card renderer
-  proxy.ts                       session refresh + /admin gate
 supabase/migrations/             schema, indexes and RLS policies
 ```
 
 ---
 
-## 9. Brand assets
+## 8. Brand assets
 
 | File | Used for |
 | --- | --- |
-| `public/logo-mark.png` | the mark in the site nav and admin header |
-| `public/logo-full.png` | the stacked lockup in the footer and on the admin sign-in |
+| `public/logo-mark.png` | the mark in the site nav |
+| `public/logo-full.png` | the stacked lockup in the footer |
 | `src/app/icon.png`, `src/app/apple-icon.png` | favicon and iOS home-screen icon (Next.js file conventions — no `<link>` tags needed) |
 | `src/app/opengraph-image.tsx` | the social share card, generated at request time |
 
@@ -263,7 +229,7 @@ renders tasteful placeholders that become real photos the moment you pass a
 
 ---
 
-## 10. Adding emails later
+## 9. Adding emails later
 
 `src/lib/notifications.ts` holds empty functions that are already called in the
 right places:
@@ -273,21 +239,21 @@ right places:
 - `notifyAdminOfNewApplication` and `sendCreatorConfirmationEmail` — called
   after a successful application, wrapped so a failure can never lose the
   application itself.
-- `sendCreatorDecisionEmail` — for acceptance/rejection when an admin changes a
-  status.
+- `sendCreatorDecisionEmail` — for acceptance/rejection once there's a way to
+  change a status.
 - `sendOpportunityEmail` — for when opportunities exist.
 
 Drop a provider (Resend, Postmark, …) into those functions and nothing else has
 to change.
 
-## 11. Where this grows next
+## 10. Where this grows next
 
 The MVP is scoped tightly on purpose, but nothing here blocks the next steps:
 `creators` and `business_leads` are standalone tables ready to gain a profile, a
-reliability score and a subscription; the admin area is already a route group
-with its own auth boundary, so `opportunities` and `collaborations` can sit
-alongside them; and the validation schemas and status lists are single sources
-of truth in `src/lib`.
+reliability score and a subscription; the `admin_users` role and RLS policies
+are already in the database, so an admin area can come back as a route group
+with its own auth boundary; and the validation schemas and status lists are
+single sources of truth in `src/lib`.
 
 Two things the site deliberately does *not* have yet, and shouldn't gain by
 accident:

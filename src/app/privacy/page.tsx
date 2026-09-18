@@ -33,7 +33,7 @@ export default function PrivacyPage() {
         <p>
           The short version: the only personal information we hold is what you
           type into our two forms. We don&rsquo;t track you around the web, we
-          don&rsquo;t set cookies on the public site and we don&rsquo;t sell data.
+          don&rsquo;t set cookies and we don&rsquo;t sell data.
         </p>
       </section>
 
@@ -111,7 +111,7 @@ export default function PrivacyPage() {
           </li>
         </ul>
         <p>
-          The public site sets no cookies. See our{" "}
+          The site sets no cookies. See our{" "}
           <Link href="/cookies" className="text-ink underline underline-offset-2">
             cookies policy
           </Link>{" "}
@@ -123,9 +123,8 @@ export default function PrivacyPage() {
         <h2>Who sees it and where it&rsquo;s stored</h2>
         <p>
           Applications and enquiries are visible only to the Discovered Local
-          team, through a private, password-protected admin area. They&rsquo;re
-          stored with Supabase, our database provider, and the site is hosted on
-          Vercel. Where a provider processes data outside the UK, that transfer is
+          team. They&rsquo;re stored with Supabase, our database provider, and the
+          site is hosted on Vercel. Where a provider processes data outside the UK, that transfer is
           covered by the UK&rsquo;s international data transfer safeguards
           (standard contractual clauses or an adequacy decision).
         </p>

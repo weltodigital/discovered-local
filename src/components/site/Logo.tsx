@@ -3,7 +3,7 @@ import Link from "next/link";
 
 /**
  * Brand mark plus wordmark. The nav needs a horizontal lockup, so the stacked
- * logo file is used in the footer and on the admin sign-in instead.
+ * logo file is used in the footer instead.
  *
  * Below `sm` the wordmark drops away: on a 360px phone the header has to fit
  * the mark, the primary CTA and the menu button, and the CTA is worth more

@@ -16,29 +16,21 @@ export default function CookiesPage() {
       <section>
         <h2>The short version</h2>
         <p>
-          The public Discovered Local site doesn&rsquo;t set any cookies. No
-          advertising cookies, no tracking cookies, no analytics cookies. That&rsquo;s
-          why you don&rsquo;t see a cookie banner.
+          Discovered Local doesn&rsquo;t set any cookies. No advertising cookies,
+          no tracking cookies, no analytics cookies. That&rsquo;s why you
+          don&rsquo;t see a cookie banner.
         </p>
       </section>
 
       <section>
-        <h2>What the site does store</h2>
-        <ul>
-          <li>
-            <strong className="font-medium text-ink">Application draft.</strong>{" "}
-            While you&rsquo;re filling in the creator application, your answers are
-            saved in your browser&rsquo;s local storage so a refresh or a lost
-            connection doesn&rsquo;t wipe the form. This stays on your device,
-            isn&rsquo;t sent to us until you press submit and is cleared when you do.
-          </li>
-          <li>
-            <strong className="font-medium text-ink">Admin sign-in.</strong> Our
-            private admin area sets a session cookie so the Discovered Local team
-            can stay signed in. It&rsquo;s strictly necessary for that area to work
-            and is only set for people who log in.
-          </li>
-        </ul>
+        <h2>The one thing the site does store</h2>
+        <p>
+          While you&rsquo;re filling in the creator application, your answers are
+          saved in your browser&rsquo;s local storage so a refresh or a lost
+          connection doesn&rsquo;t wipe the form. This stays on your device,
+          isn&rsquo;t sent to us until you press submit and is cleared when you do.
+          It isn&rsquo;t a cookie and we can&rsquo;t read it.
+        </p>
       </section>
 
       <section>
