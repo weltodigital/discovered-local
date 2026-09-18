@@ -49,11 +49,6 @@ function resolveSiteUrl(): string {
 
 export const SITE_URL = resolveSiteUrl();
 
-export const SOCIAL_LINKS = {
-  instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "",
-  tiktok: process.env.NEXT_PUBLIC_TIKTOK_URL || "",
-};
-
 export const LOCATIONS = [
   "Portsmouth",
   "Southsea",

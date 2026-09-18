@@ -4,7 +4,6 @@ import Link from "next/link";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { buttonStyles } from "@/components/ui/button";
-import { SOCIAL_LINKS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Application received",
@@ -13,8 +12,6 @@ export const metadata: Metadata = {
 };
 
 export default function SuccessPage() {
-  const followUrl = SOCIAL_LINKS.instagram || SOCIAL_LINKS.tiktok;
-
   return (
     <>
       <SiteHeader audience="creator" />
@@ -47,24 +44,10 @@ export default function SuccessPage() {
             <p className="text-ink">In the meantime, keep creating.</p>
           </div>
 
-          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            {followUrl ? (
-              <a
-                href={followUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={buttonStyles({ size: "lg", className: "w-full sm:w-auto" })}
-              >
-                Follow Discovered Local
-              </a>
-            ) : null}
+          <div className="mt-10 flex justify-center">
             <Link
               href="/creators"
-              className={buttonStyles({
-                variant: "ghost",
-                size: "lg",
-                className: "w-full sm:w-auto",
-              })}
+              className={buttonStyles({ size: "lg", className: "w-full sm:w-auto" })}
             >
               Back to creators
             </Link>

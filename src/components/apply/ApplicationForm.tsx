@@ -17,6 +17,7 @@ import {
   TextInput,
 } from "@/components/ui/fields";
 import { trackEvent } from "@/lib/analytics";
+import { HONEYPOT_FIELD } from "@/lib/spam-guard";
 import {
   BUSINESS_TYPES,
   COLLABORATION_FREQUENCIES,
@@ -43,6 +44,12 @@ export function ApplicationForm() {
   const [banner, setBanner] = useState<Banner>(null);
   const startedRef = useRef(false);
   const topRef = useRef<HTMLDivElement>(null);
+  const honeypotRef = useRef<HTMLInputElement>(null);
+  const mountedAtRef = useRef(0);
+
+  useEffect(() => {
+    mountedAtRef.current = Date.now();
+  }, []);
 
   const {
     control,
@@ -125,7 +132,10 @@ export function ApplicationForm() {
 
     let result;
     try {
-      result = await submitApplication(values);
+      result = await submitApplication(values, {
+        honeypot: honeypotRef.current?.value ?? "",
+        startedAt: mountedAtRef.current,
+      });
     } catch (error) {
       console.error("[apply] submission failed", error);
       setBanner({
@@ -206,6 +216,20 @@ export function ApplicationForm() {
       ) : null}
 
       <form onSubmit={onSubmit} onFocusCapture={markStarted} noValidate>
+        {/* Honeypot: off-screen and out of the tab order, so only scripts fill it. */}
+        <div aria-hidden className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden">
+          <label htmlFor={HONEYPOT_FIELD}>Website</label>
+          <input
+            ref={honeypotRef}
+            id={HONEYPOT_FIELD}
+            name={HONEYPOT_FIELD}
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            defaultValue=""
+          />
+        </div>
+
         {/* ------------------------------------------------ Step 1: About you */}
         <fieldset className={stepClass(0)}>
           <Field label="Full name" htmlFor="fullName" error={errors.fullName?.message}>
@@ -245,6 +269,7 @@ export function ApplicationForm() {
             <Field
               label="Instagram username"
               htmlFor="instagramUsername"
+              hint="Add at least one of Instagram or TikTok."
               error={errors.instagramUsername?.message}
             >
               <TextInput
@@ -261,7 +286,6 @@ export function ApplicationForm() {
             <Field
               label="TikTok username"
               htmlFor="tiktokUsername"
-              optional
               error={errors.tiktokUsername?.message}
             >
               <TextInput
@@ -270,6 +294,7 @@ export function ApplicationForm() {
                 autoCapitalize="none"
                 autoCorrect="off"
                 placeholder="yourhandle"
+                aria-invalid={Boolean(errors.instagramUsername)}
                 {...register("tiktokUsername")}
               />
             </Field>

@@ -17,8 +17,8 @@ export default function PrivacyPage() {
         <p>
           Discovered Local connects local businesses in Portsmouth with creators
           who live nearby. You can reach us at{" "}
-          <a className="text-ink underline underline-offset-2" href="mailto:hello@discoveredlocal.com">
-            hello@discoveredlocal.com
+          <a className="text-ink underline underline-offset-2" href="mailto:info@weltodigital.com">
+            info@weltodigital.com
           </a>
           .
         </p>

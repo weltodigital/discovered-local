@@ -61,11 +61,8 @@ export const applicationSchema = z
     email: z.string().trim().pipe(z.email("Enter a valid email address.")),
     phone: optionalText(40),
 
-    instagramUsername: z
-      .string()
-      .trim()
-      .min(1, "Please add your Instagram username.")
-      .max(60, "That username is too long."),
+    // Either handle will do — TikTok-only creators are exactly who we want.
+    instagramUsername: optionalText(60),
     tiktokUsername: optionalText(60),
 
     location: z.enum(LOCATIONS, { message: "Please choose your location." }),
@@ -105,6 +102,15 @@ export const applicationSchema = z
   .refine(
     (data) => data.location !== "Other" || Boolean(data.locationOther?.trim()),
     { message: "Tell us where you're based.", path: ["locationOther"] },
+  )
+  .refine(
+    (data) =>
+      Boolean(data.instagramUsername?.replace(/^@+/, "").trim()) ||
+      Boolean(data.tiktokUsername?.replace(/^@+/, "").trim()),
+    {
+      message: "Add your Instagram or TikTok username — at least one.",
+      path: ["instagramUsername"],
+    },
   );
 
 /** What the form fields hold before Zod runs (everything is a string/array). */

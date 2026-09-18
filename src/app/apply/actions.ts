@@ -1,6 +1,7 @@
 "use server";
 
 import { applicationSchema } from "@/lib/validation/creator";
+import { looksLikeBot, type SpamGuard } from "@/lib/spam-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   notifyAdminOfNewApplication,
@@ -39,7 +40,17 @@ function orNull(value: string | undefined): string | null {
  * Public endpoint for the creator application. Runs server-side only, so the
  * browser never needs read access to the creators table.
  */
-export async function submitApplication(raw: unknown): Promise<SubmitState> {
+export async function submitApplication(
+  raw: unknown,
+  guard?: SpamGuard,
+): Promise<SubmitState> {
+  // Bots get the same success response as everyone else, so there is nothing
+  // to learn from probing the endpoint. Nothing is stored.
+  if (looksLikeBot(guard)) {
+    console.warn("[apply] dropped submission that looked automated");
+    return { status: "ok" };
+  }
+
   const parsed = applicationSchema.safeParse(raw);
 
   if (!parsed.success) {
